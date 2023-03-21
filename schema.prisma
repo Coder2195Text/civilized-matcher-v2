@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  enabled     Boolean @default(true)
+  formVersion Int     @default(0)
+  rank        String  @default("user")
+
+  id               String  @id
+  discordTag       String  @unique
+  age              Int
+  preferredAges    Json
+  gender           String
+  preferredGenders Json
+  location         String  @db.VarChar(200)
+  radius           Int
+  desc             String  @db.VarChar(2000)
+  matchDesc        String  @db.VarChar(2000)
+  selfieURL        String? @db.VarChar(500)
+
+  matchedUser   String? @unique
+  rejectedUsers User[]  @relation("UserReject")
+  rejectedBy    User[]  @relation("UserReject")
+
+  requests   DateRequests[] @relation("proposingTo")
+  requesting DateRequests[] @relation("proposingFrom")
+}
+
+model DateRequests {
+  id String @id @default(cuid())
+
+  proposingFrom User   @relation("proposingFrom", fields: [proposerId], references: [id])
+  proposerId    String @map("followerId")
+  proposingTo   User   @relation("proposingTo", fields: [proposeeId], references: [id])
+  proposeeId    String @map("followingId")
+
+  message String @db.VarChar(2000)
+  status  Int    @default(0) // -1 = rejected, 0 = pending, 1 = accepted
+
+  @@index([proposerId])
+  @@index([proposeeId])
+}
