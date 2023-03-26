@@ -11,7 +11,6 @@ datasource db {
 model User {
   enabled     Boolean @default(true)
   formVersion Int     @default(0)
-  rank        String  @default("user")
 
   id               String  @id
   discordTag       String  @unique
@@ -46,4 +45,9 @@ model DateRequests {
 
   @@index([proposerId])
   @@index([proposeeId])
+}
+
+model Ranks {
+  id   String @id
+  rank String
 }
