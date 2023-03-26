@@ -24,12 +24,14 @@ model User {
   matchDesc        String  @db.VarChar(2000)
   selfieURL        String? @db.VarChar(500)
 
-  matchedUser   String? @unique
-  rejectedUsers User[]  @relation("UserReject")
-  rejectedBy    User[]  @relation("UserReject")
-
   requests   DateRequests[] @relation("proposingTo")
   requesting DateRequests[] @relation("proposingFrom")
+}
+
+model Rejections {
+  id            String       @id
+  rejectedBy    Rejections[] @relation("UserReject")
+  rejectedUsers Rejections[] @relation("UserReject")
 }
 
 model DateRequests {
@@ -40,8 +42,9 @@ model DateRequests {
   proposingTo   User   @relation("proposingTo", fields: [proposeeId], references: [id])
   proposeeId    String @map("followingId")
 
-  message String @db.VarChar(2000)
-  status  Int    @default(0) // -1 = rejected, 0 = pending, 1 = accepted
+  message    String  @db.VarChar(2000)
+  status     Int     @default(0) // -1 = rejected, 0 = pending, 1 = accepted
+  matchMaked Boolean @default(false)
 
   @@index([proposerId])
   @@index([proposeeId])
