@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./auth/[...nextauth]";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ export default async function handler(
     return;
   }
 
-  const session = await getSession({ req });
+  const session = await getServerSession(req, res, authOptions);
 
   if (!session) {
     res.status(401).json({ error: "Unauthorized" });
@@ -35,7 +36,7 @@ export default async function handler(
     })
     .then((rank) => (rank ? rank.rank : "user"));
 
-  if (user.id === query.id || (await rank) === "admin")
+  if (user.id === query.id || ["admin", "matchmaker"].includes(await rank))
     res.status(200).json(await response);
   else res.status(403).json({ error: "Forbidden" });
 }

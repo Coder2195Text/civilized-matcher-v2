@@ -1,6 +1,8 @@
+import { Client, GatewayIntentBits } from "discord.js";
 import NextAuth, { AuthOptions } from "next-auth";
 import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { DiscordProfile } from "next-auth/providers/discord";
+import { signIn } from "next-auth/react";
 
 function DiscordProvider<P extends DiscordProfile>(
   options: OAuthUserConfig<P>
@@ -63,6 +65,24 @@ export const authOptions: AuthOptions = {
         token.accessToken = account.access_token!;
       }
       return token;
+    },
+    async signIn({ user }) {
+      const client = new Client({ intents: [GatewayIntentBits.GuildMembers] });
+      await client.login(process.env.BOT_TOKEN!);
+
+      try {
+        // get the server by ID
+        const guild = await client.guilds.fetch(process.env.SERVER_ID!);
+
+        // check if the user is in the server
+        await guild.members.fetch(user.id);
+
+        return true;
+      } catch (error) {
+        return "/join";
+      } finally {
+        client.destroy();
+      }
     },
   },
 

@@ -6,8 +6,13 @@ const Loading: FC = () => {
     <div className="flex fixed z-50 flex-wrap justify-center items-center w-screen h-screen text-lg text-center bg-pink-200 sm:text-2xl md:text-5xl">
       <div>
         Loading...
-        <br />
-        <BarLoader color="#ff66ff" loading={true} width="50vw" height="5vw" />
+        <BarLoader
+          color="#ff66ff"
+          loading={true}
+          width="50vw"
+          height="25px"
+          className="top-4"
+        />
       </div>
     </div>
   );

@@ -22,12 +22,14 @@ import { BiLogOut } from "react-icons/bi";
 const NAV_MAP: { [key: string]: ReactNode } = {
   "/dashboard": (
     <>
-      <MdDashboard className="inline mx-2" size={32} /> Dashboard
+      <MdDashboard className="inline mx-2" size={32} />
+      Dashboard
     </>
   ),
   "/form": (
     <>
-      <AiOutlineForm className="inline mx-2" size={32} /> Form
+      <AiOutlineForm className="inline mx-2" size={32} />
+      Form
     </>
   ),
   "/matches": (
@@ -38,7 +40,8 @@ const NAV_MAP: { [key: string]: ReactNode } = {
   ),
   "/messages": (
     <>
-      <AiOutlineMail className="inline mx-2" size={32} /> Messages
+      <AiOutlineMail className="inline mx-2" size={32} />
+      Messages
     </>
   ),
 };
@@ -55,7 +58,7 @@ const ProfileMenu: FC<{ session: Session | null; status: AuthStatus }> = ({
       <Button
         variant="text"
         color="blue-gray"
-        className="flex items-start px-3 my-1 text-2xl bg-pink-300 rounded-full lg:ml-auto"
+        className="flex items-start px-3 mx-3 text-2xl text-black bg-pink-300 rounded-full lg:ml-auto"
         onClick={() => signIn("discord")}
       >
         Login <FaDiscord className="inline-block ml-2" size={28} />
@@ -116,6 +119,7 @@ const NavBar: FC = () => {
             onClick={() => {
               setOpenNav(false);
             }}
+            className="text-slate-500"
           >
             {NAV_MAP[link]}
           </Link>
