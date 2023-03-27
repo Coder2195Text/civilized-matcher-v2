@@ -24,8 +24,8 @@ export default function App({ Component, pageProps }: AppProps) {
           images: [
             {
               url: "https://civilized-matcher.vercel.app/favicon.ico",
-              width: 256,
-              height: 256,
+              width: 240,
+              height: 240,
               type: "image/png",
             },
           ],
