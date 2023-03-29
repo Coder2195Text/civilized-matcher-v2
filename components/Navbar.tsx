@@ -85,7 +85,10 @@ const ProfileMenu: FC<{ session: Session | null; status: AuthStatus }> = ({
           />
         </Button>
       </MenuHandler>
-      <MenuList className="z-30 p-0 text-2xl rounded-xl border-0 outline-transparent">
+      <MenuList className="z-30 p-0 text-2xl bg-pink-600 outline-none select-none outline-transparent">
+        <h6 className="p-1 outline-none decoration-transparent">
+          Logged in as {session?.user.username}#{session?.user.discriminator}
+        </h6>
         <MenuItem
           className="p-2 bg-red-500"
           onClick={() => {
