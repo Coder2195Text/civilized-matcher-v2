@@ -18,7 +18,9 @@ const Home: FC = () => {
       <Layout>
         {status == "authenticated" && (
           <>
-            <h1>Dashboard</h1>
+            <h1>
+              Welcome back, {session.user.username}#{session.user.discriminator}
+            </h1>
           </>
         )}
       </Layout>

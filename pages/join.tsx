@@ -21,25 +21,24 @@ const Home: FC = () => {
           <div className="w-full text-center">
             <h1>Join our server to use this app!!!</h1>
             <h4>Step 1. </h4>
-            <button
-              onClick={() => {
-                open(process.env.NEXT_PUBLIC_DISCORD_INVITE);
-              }}
+            <a
+              href={process.env.NEXT_PUBLIC_DISCORD_INVITE}
+              target="_blank"
               className="py-2 px-4 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             >
               Join the server!!!{" "}
               <FaDiscord className="inline-block ml-2" size={28} />
-            </button>
+            </a>
             <h4>Step 2. </h4>
-            <button
+            <a
               onClick={() => {
-                open(process.env.NEXT_PUBLIC_DISCORD_INVITE);
+                signIn("discord");
               }}
-              className="py-2 px-4 mb-5 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+              className="py-2 px-4 mb-5 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 hover:cursor-pointer"
             >
               Login with Discord
               <FaDiscord className="inline-block ml-2" size={28} />
-            </button>
+            </a>
             <h4>Hope you enjoy the app!!!</h4>
           </div>
         )}

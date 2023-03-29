@@ -20,6 +20,7 @@
     "next-auth": "^4.20.1",
     "next-seo": "^5.15.0",
     "prisma": "^4.11.0",
+    "prisma-joi-generator": "^0.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-icons": "^4.8.0",
