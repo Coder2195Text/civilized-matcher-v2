@@ -2,11 +2,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-generator joi {
-  provider = "prisma-joi-generator"
-  output   = "types/joi"
-}
-
 datasource db {
   provider     = "mysql"
   url          = env("DATABASE_URL")
@@ -17,6 +12,7 @@ model User {
   enabled     Boolean @default(true)
   formVersion Int     @default(0)
 
+  name             String  @db.VarChar(200)
   id               String  @id
   discordTag       String  @unique
   age              Int
@@ -43,9 +39,9 @@ model DateRequests {
   id String @id @default(cuid())
 
   proposingFrom User   @relation("proposingFrom", fields: [proposerId], references: [id])
-  proposerId    String @map("followerId")
+  proposerId    String
   proposingTo   User   @relation("proposingTo", fields: [proposeeId], references: [id])
-  proposeeId    String @map("followingId")
+  proposeeId    String
 
   message    String  @db.VarChar(2000)
   status     Int     @default(0) // -1 = rejected, 0 = pending, 1 = accepted

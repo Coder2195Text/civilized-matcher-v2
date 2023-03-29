@@ -1,10 +1,30 @@
-import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 import { Client, GatewayIntentBits } from "discord.js";
+import Joi from "joi";
+import { GENDERS } from "@/globals/constants";
+import prisma from "@/globals/prisma";
 
-const prisma = new PrismaClient();
+const dataValidator = Joi.object({
+  enabled: Joi.boolean(),
+  age: Joi.number()
+    .min(Number(process.env.NEXT_PUBLIC_MIN_AGE))
+    .max(Number(process.env.NEXT_PUBLIC_MAX_AGE)),
+  preferredAges: Joi.array().items(
+    Joi.number()
+      .min(Number(process.env.NEXT_PUBLIC_MIN_AGE))
+      .max(Number(process.env.NEXT_PUBLIC_MAX_AGE))
+  ),
+  gender: Joi.string().valid(...GENDERS),
+  preferredGenders: Joi.array().items(Joi.string().valid(...GENDERS)),
+  location: Joi.string(),
+  radius: Joi.number().min(0).max(15000),
+  desc: Joi.string().min(0).max(2000),
+  matchDesc: Joi.string().min(0).max(2000),
+  selfieUrl: Joi.string().uri().min(0).max(500),
+  name: Joi.string().min(0).max(200),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,6 +63,12 @@ export default async function handler(
       res.status(200).json(await response);
     else res.status(403).json({ error: "Forbidden" });
   } else if (req.method == "PUT") {
+    try {
+      await dataValidator.validateAsync(req.body);
+    } catch (e) {
+      res.status(400).json({ error: "Invalid request body" });
+      return;
+    }
     const client = new Client({ intents: [GatewayIntentBits.GuildMembers] });
     await client.login(process.env.BOT_TOKEN!);
     try {
@@ -64,6 +90,7 @@ export default async function handler(
             id: query.id,
           },
         });
+
         res.status(200).json(response);
       } catch (e) {
         console.log(e);
