@@ -1,11 +1,11 @@
 import { FC } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Layout from "@/components/Layout";
 import Router from "next/router";
 import { NextSeo } from "next-seo";
 
 const Home: FC = () => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   if (typeof window !== "undefined" && status === "authenticated")
     Router.push("/dashboard");

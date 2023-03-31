@@ -4,8 +4,8 @@ import Layout from "@/components/Layout";
 import Router from "next/router";
 import { NextSeo } from "next-seo";
 
-const Home: FC = () => {
-  const { data: session, status } = useSession();
+const Form: FC = () => {
+  const { status } = useSession();
 
   if (typeof window !== "undefined" && status === "unauthenticated")
     Router.push("/");
@@ -18,9 +18,7 @@ const Home: FC = () => {
       <Layout>
         {status == "authenticated" && (
           <>
-            <h1>
-              Welcome back, {session.user.username}#{session.user.discriminator}
-            </h1>
+            <h1>Form</h1>
           </>
         )}
       </Layout>
@@ -28,4 +26,4 @@ const Home: FC = () => {
   );
 };
 
-export default Home;
+export default Form;

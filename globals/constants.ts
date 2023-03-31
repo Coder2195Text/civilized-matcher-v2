@@ -13,4 +13,6 @@ export const GENDERS = [
   "AFAB Demigirl",
   "AMAB Demiboy",
   "AFAB Demiboy",
-];
+] as const;
+
+type GENDERS = (typeof GENDERS)[number];

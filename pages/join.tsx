@@ -6,7 +6,7 @@ import { FaDiscord } from "react-icons/fa";
 import { NextSeo } from "next-seo";
 
 const Home: FC = () => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   if (typeof window !== "undefined" && status === "authenticated")
     Router.push("/dashboard");

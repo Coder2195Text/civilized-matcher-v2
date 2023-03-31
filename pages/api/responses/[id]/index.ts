@@ -1,29 +1,32 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { authOptions } from "../../auth/[...nextauth]";
 import { Client, GatewayIntentBits } from "discord.js";
 import Joi from "joi";
 import { GENDERS } from "@/globals/constants";
 import prisma from "@/globals/prisma";
 
 const dataValidator = Joi.object({
-  enabled: Joi.boolean(),
   age: Joi.number()
     .min(Number(process.env.NEXT_PUBLIC_MIN_AGE))
     .max(Number(process.env.NEXT_PUBLIC_MAX_AGE)),
-  preferredAges: Joi.array().items(
-    Joi.number()
-      .min(Number(process.env.NEXT_PUBLIC_MIN_AGE))
-      .max(Number(process.env.NEXT_PUBLIC_MAX_AGE))
-  ),
+  preferredAges: Joi.array()
+    .items(
+      Joi.number()
+        .min(Number(process.env.NEXT_PUBLIC_MIN_AGE))
+        .max(Number(process.env.NEXT_PUBLIC_MAX_AGE))
+    )
+    .min(1),
   gender: Joi.string().valid(...GENDERS),
-  preferredGenders: Joi.array().items(Joi.string().valid(...GENDERS)),
-  location: Joi.string(),
+  preferredGenders: Joi.array()
+    .items(Joi.string().valid(...GENDERS))
+    .min(1),
+  location: Joi.string().min(1).max(200),
   radius: Joi.number().min(0).max(15000),
-  desc: Joi.string().min(0).max(2000),
-  matchDesc: Joi.string().min(0).max(2000),
-  selfieUrl: Joi.string().uri().min(0).max(500),
-  name: Joi.string().min(0).max(200),
+  desc: Joi.string().min(1).max(2000),
+  matchDesc: Joi.string().min(1).max(2000),
+  selfieUrl: Joi.string().uri().min(1).max(500),
+  name: Joi.string().min(1).max(200),
 });
 
 export default async function handler(
@@ -62,7 +65,9 @@ export default async function handler(
     if (user.id === query.id || ["admin", "matchmaker"].includes(await rank))
       res.status(200).json(await response);
     else res.status(403).json({ error: "Forbidden" });
-  } else if (req.method == "PUT") {
+    return;
+  }
+  if (req.method == "PUT") {
     try {
       await dataValidator.validateAsync(req.body);
     } catch (e) {
@@ -82,21 +87,39 @@ export default async function handler(
 
     if (user.id === query.id || (await rank) == "admin") {
       try {
-        const response = await prisma.user.upsert({
-          where: { id: query.id },
-          update: req.body,
-          create: {
-            ...req.body,
-            id: query.id,
-          },
-        });
+        const response = await Promise.all([
+          prisma.user.upsert({
+            where: { id: query.id },
+            update: req.body,
+            create: {
+              ...req.body,
+              id: query.id,
+            },
+          }),
+          prisma.rejections.upsert({
+            where: { id: query.id },
+            update: {},
+            create: {
+              id: query.id,
+            },
+          }),
+        ]);
 
-        res.status(200).json(response);
+        res.status(200).json(response[0]);
       } catch (e) {
         console.log(e);
         res.status(400).json({ error: "Invalid request body" });
       }
     } else res.status(403).json({ error: "Forbidden" });
+    return;
   }
-  // res.status(400).json({ error: "Invalid request" });
+
+  if (req.method === "DELETE") {
+    const response = prisma.user.delete({ where: { id: query.id } });
+    if (user.id === query.id || ["admin"].includes(await rank))
+      res.status(200).json(await response);
+    else res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+  res.status(405).json({ error: "Method not allowed" });
 }
