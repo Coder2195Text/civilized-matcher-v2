@@ -1,3 +1,3 @@
 import { User } from "@prisma/client";
 
-type UserData = Omit<User, ["discordTag", "id"]>;
+type UserData = Omit<User, "discordTag" | "id" | "enabled" | "formVersion">;

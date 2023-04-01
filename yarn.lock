@@ -1457,6 +1457,11 @@ ignore@^5.2.0:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.2.4.tgz#a291c0c6178ff1b960befe47fcdec301674a6324"
   integrity sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==
 
+inclusive-range@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/inclusive-range/-/inclusive-range-0.0.1.tgz#eed473cb847d0b698e91d26aa6966dbcbfa7ae38"
+  integrity sha512-doAdAEpTCARl5eoAJMeQUg4NK8cBkuWcH94JMOoT2GLjfjy+L5muGJM615Sht9eFQIKfc4CXMTtsoM3xm8wnDQ==
+
 indent-string@4.0.0, indent-string@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/indent-string/-/indent-string-4.0.0.tgz#624f8f4497d619b2d9768531d58f4122854d7251"

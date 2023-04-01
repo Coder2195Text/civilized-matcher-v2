@@ -58,7 +58,7 @@ const ProfileMenu: FC<{ session: Session | null; status: AuthStatus }> = ({
       <Button
         variant="text"
         color="blue-gray"
-        className="flex items-start px-3 mx-3 text-2xl text-black bg-pink-300 rounded-full lg:ml-auto"
+        className="flex items-start px-3 mx-3 text-2xl text-black bg-pink-500 rounded-full lg:ml-auto"
         onClick={() => signIn("discord")}
       >
         Login <FaDiscord className="inline-block ml-2" size={28} />
@@ -71,7 +71,7 @@ const ProfileMenu: FC<{ session: Session | null; status: AuthStatus }> = ({
         <Button
           variant="text"
           color="blue-gray"
-          className="flex gap-1 items-center py-1 pr-2 pl-3 mx-2 bg-pink-300 rounded-full lg:ml-auto"
+          className="flex gap-1 items-center py-1 pr-2 pl-3 mx-2 bg-pink-500 rounded-full lg:ml-auto"
         >
           {session?.user.image_url && (
             <img
@@ -106,15 +106,10 @@ const NavBar: FC = () => {
   const [openNav, setOpenNav] = useState(false);
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    window.addEventListener(
-      "resize",
-      () => window.innerWidth >= 960 && setOpenNav(false)
-    );
-  }, []);
-
   const navList = (
-    <ul className="flex flex-col gap-2 my-2 select-none lg:flex-row lg:gap-6 lg:items-center lg:mt-0 lg:mb-0">
+    <ul
+      className={`flex flex-col gap-2 my-2 select-none lg:flex-row lg:gap-6 lg:items-center lg:mt-0 lg:mb-0`}
+    >
       {Object.keys(NAV_MAP).map((link) => (
         <li className="p-1 text-xl" key={link}>
           <Link
@@ -122,7 +117,7 @@ const NavBar: FC = () => {
             onClick={() => {
               setOpenNav(false);
             }}
-            className="text-slate-500"
+            className="text-slate-900"
           >
             {NAV_MAP[link]}
           </Link>
@@ -131,7 +126,10 @@ const NavBar: FC = () => {
     </ul>
   );
   return (
-    <Navbar className="fixed top-0 left-0 z-10 py-2 w-screen bg-pink-200 border-none">
+    <Navbar
+      className="fixed top-0 left-0 z-10 py-2 bg-pink-600 border-none opacity-90"
+      fullWidth={true}
+    >
       <div className="flex justify-between items-center text-blue-gray-100">
         <span className="py-1 px-3 text-2xl font-bold font-header">
           <Link
@@ -185,7 +183,14 @@ const NavBar: FC = () => {
         </IconButton>
         <ProfileMenu session={session} status={status} />
       </div>
-      <MobileNav open={openNav}>{navList}</MobileNav>
+      <MobileNav open={openNav}>
+        {openNav && <hr className="my-2" />}
+        <span
+          className={openNav ? "h-full overflow-auto" : "h-0 overflow-hidden"}
+        >
+          {navList}
+        </span>
+      </MobileNav>
     </Navbar>
   );
 };

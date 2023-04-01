@@ -42,7 +42,7 @@
   }
 
   body {
-    @apply font-body text-base;
+    @apply font-body text-base text-white;
   }
 
   a {
@@ -51,5 +51,27 @@
 
   a:hover {
     @apply underline;
+  }
+
+  label {
+    @apply font-bold pr-2;
+  }
+
+  label,
+  select,
+  input,
+  textarea {
+    @apply text-2xl max-w-full;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply h-6 w-6 mr-1 rounded-full my-auto cursor-pointer bg-gray-700;
+  }
+}
+
+@layer components {
+  .choice-wrapper {
+    @apply inline-flex text-white align-middle items-center text-2xl transition-all  hover:bg-slate-500 p-2 rounded-md cursor-pointer font-normal;
   }
 }

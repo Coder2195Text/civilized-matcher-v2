@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { DefaultSeo } from "next-seo";
 import type { AppProps } from "next/app";
+import Image from "next/image";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -33,6 +34,14 @@ export default function App({ Component, pageProps }: AppProps) {
       />
       <NavBar />
       <Component {...pageProps} />
+      <div className="fixed top-0 left-0 w-screen h-screen -z-20">
+        <Image
+          src="/wallpaper.jpg"
+          fill={true}
+          className="object-cover opacity-80"
+          alt=""
+        />
+      </div>
     </SessionProvider>
   );
 }
