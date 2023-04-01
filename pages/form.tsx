@@ -34,8 +34,8 @@ const Form: FC = () => {
   return (
     <>
       <NextSeo
-        title="Matchmaking - Dashboard"
-        description="Manage your matchmaking profile and more."
+        title="Matchmaking - Form Management"
+        description="Manage your matchmaking form and responses."
       />
       <Layout>
         {status == "authenticated" && !isLoading && (
@@ -50,9 +50,8 @@ const Form: FC = () => {
                   text={
                     enableStatus == "updating"
                       ? `${form.enabled ? "Disabling" : "Enabling"} Form...`
-                      : `${
-                          enableStatus == "enabled" ? "Disable" : "Enable"
-                        } Form`
+                      : `${enableStatus == "enabled" ? "Disable" : "Enable"
+                      } Form`
                   }
                   className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4"
                   onClick={async () => {
