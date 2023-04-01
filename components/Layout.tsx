@@ -8,7 +8,13 @@ const Layout: FC<{ children?: ReactNode }> = ({ children }) => {
   if (status === "loading" || !children) {
     return <Loading />;
   }
-  return <div className="pt-20 w-screen break-words px-[1vw]">{children}</div>;
+  return (
+    <div className="flex justify-center pt-20 w-screen px-[1vw]">
+      <div className="max-w-6xl p-3 bg-[rgba(100,100,100,.5)] rounded-3xl break-words overflow-clip w-[95vw]">
+        {children}
+      </div>
+    </div>
+  );
 };
 
 export default Layout;

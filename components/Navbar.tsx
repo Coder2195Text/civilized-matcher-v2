@@ -135,7 +135,7 @@ const NavBar: FC = () => {
       <div className="flex justify-between items-center text-blue-gray-100">
         <span className="py-1 px-3 text-2xl font-bold font-header">
           <Link
-            href="/"
+            href={status == "authenticated" ? "/dashboard" : "/"}
             className="text-amber-500 no-underline transition-all hover:font-extrabold hover:text-amber-700 hover:before:scale-x-0"
             onClick={() => {
               setOpenNav(false);

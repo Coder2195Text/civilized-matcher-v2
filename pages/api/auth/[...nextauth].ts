@@ -2,7 +2,6 @@ import { Client, GatewayIntentBits } from "discord.js";
 import NextAuth, { AuthOptions } from "next-auth";
 import { OAuthConfig, OAuthUserConfig } from "next-auth/providers";
 import { DiscordProfile } from "next-auth/providers/discord";
-import { signIn } from "next-auth/react";
 
 function DiscordProvider<P extends DiscordProfile>(
   options: OAuthUserConfig<P>

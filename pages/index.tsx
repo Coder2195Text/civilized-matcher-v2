@@ -1,8 +1,8 @@
-import { FC } from "react";
-import { useSession } from "next-auth/react";
 import Layout from "@/components/Layout";
-import Router from "next/router";
+import { useSession } from "next-auth/react";
 import { NextSeo } from "next-seo";
+import Router from "next/router";
+import { FC } from "react";
 
 const Home: FC = () => {
   const { status } = useSession();

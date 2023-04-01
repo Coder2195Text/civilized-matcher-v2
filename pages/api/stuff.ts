@@ -1,10 +1,7 @@
 import { Client, GatewayIntentBits } from "discord.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse
-) {
+export default async function handler(_: NextApiRequest, res: NextApiResponse) {
 	const client = new Client({ intents: [GatewayIntentBits.DirectMessages] });
 	await client.login(process.env.BOT_TOKEN!);
 

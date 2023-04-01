@@ -1,9 +1,9 @@
-import { FC } from "react";
-import { signIn, useSession } from "next-auth/react";
 import Layout from "@/components/Layout";
-import Router from "next/router";
-import { FaDiscord } from "react-icons/fa";
+import { signIn, useSession } from "next-auth/react";
 import { NextSeo } from "next-seo";
+import Router from "next/router";
+import { FC } from "react";
+import { FaDiscord } from "react-icons/fa";
 
 const Home: FC = () => {
   const { status } = useSession();

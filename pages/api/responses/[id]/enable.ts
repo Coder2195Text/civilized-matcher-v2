@@ -44,12 +44,17 @@ export default async function handler(
     .then((rank) => (rank ? rank.rank : "user"));
 
   if (user.id === query.id || ["admin"].includes(await rank)) {
-    await prisma.user.update({
-      where: { id: query.id },
-      data: {
-        enabled: req.body,
-      },
-    });
+    try {
+      await prisma.user.update({
+        where: { id: query.id },
+        data: {
+          enabled: req.body,
+        },
+      });
+    } catch (e) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
     res.status(204).end();
   } else res.status(403).json({ error: "Forbidden" });
 }
