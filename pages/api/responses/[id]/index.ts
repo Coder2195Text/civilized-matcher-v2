@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]";
 import { Client, GatewayIntentBits } from "discord.js";
 import Joi from "joi";
-import { GENDERS } from "@/globals/constants";
+import { GENDERS, MAX_DISTANCE, POLY } from "@/globals/constants";
 import prisma from "@/globals/prisma";
 
 const dataValidator = Joi.object({
@@ -21,12 +21,13 @@ const dataValidator = Joi.object({
   preferredGenders: Joi.array()
     .items(Joi.string().valid(...GENDERS))
     .min(1),
-  location: Joi.string().min(1).max(200),
-  radius: Joi.number().min(0).max(15000),
-  desc: Joi.string().min(1).max(2000),
-  matchDesc: Joi.string().min(1).max(2000),
+  location: Joi.string().min(1).max(500),
+  radius: Joi.number().min(0).max(MAX_DISTANCE),
+  desc: Joi.string().min(1).max(4000),
+  matchDesc: Joi.string().min(1).max(4000),
   selfieUrl: Joi.string().uri().min(1).max(500),
-  name: Joi.string().min(1).max(200),
+  name: Joi.string().min(1).max(500),
+  poly: Joi.string().valid(...POLY),
 });
 
 export default async function handler(
@@ -115,9 +116,16 @@ export default async function handler(
   }
 
   if (req.method === "DELETE") {
-    const response = prisma.user.delete({ where: { id: query.id } });
+    const responses = Promise.all([
+      prisma.user.delete({ where: { id: query.id } }),
+      prisma.dateRequests.deleteMany({
+        where: {
+          OR: [{ proposeeId: query.id }, { proposerId: query.id }],
+        },
+      }),
+    ]);
     if (user.id === query.id || ["admin"].includes(await rank))
-      res.status(200).json(await response);
+      res.status(200).json((await responses)[0]);
     else res.status(403).json({ error: "Forbidden" });
     return;
   }

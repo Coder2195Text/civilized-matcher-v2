@@ -24,4 +24,9 @@ export const AGES = Array.from(
   )
 );
 
+export const POLY = ["Monogamous", "Ambiamorous", "Polyamorous"] as const;
+
 type GENDERS = (typeof GENDERS)[number];
+type POLY = (typeof POLY)[number];
+
+export const MAX_DISTANCE = 20000;

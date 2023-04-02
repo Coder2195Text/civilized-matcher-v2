@@ -12,18 +12,19 @@ model User {
   enabled     Boolean @default(true)
   formVersion Int     @default(0)
 
-  name             String  @db.VarChar(200)
+  name             String  @db.VarChar(500)
   id               String  @id
   discordTag       String  @unique
   age              Int
   preferredAges    Json
   gender           String
   preferredGenders Json
-  location         String  @db.VarChar(200)
+  location         String  @db.VarChar(500)
   radius           Int
-  desc             String  @db.VarChar(2000)
-  matchDesc        String  @db.VarChar(2000)
+  desc             String  @db.VarChar(4000)
+  matchDesc        String  @db.VarChar(4000)
   selfieURL        String? @db.VarChar(500)
+  poly             String
 
   requests   DateRequests[] @relation("proposingTo")
   requesting DateRequests[] @relation("proposingFrom")

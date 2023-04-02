@@ -61,12 +61,16 @@
   select,
   input,
   textarea {
-    @apply text-2xl max-w-full;
+    @apply text-2xl w-full resize-y p-2;
   }
 
   input[type="checkbox"],
   input[type="radio"] {
     @apply h-6 w-6 mr-1 rounded-full my-auto cursor-pointer bg-gray-700;
+  }
+
+  input {
+    @apply text-black;
   }
 }
 
