@@ -39,9 +39,9 @@ model Rejections {
 model DateRequests {
   id String @id @default(cuid())
 
-  proposingFrom User   @relation("proposingFrom", fields: [proposerId], references: [id])
+  proposingFrom User   @relation("proposingFrom", fields: [proposerId], references: [id], onDelete: Cascade)
   proposerId    String
-  proposingTo   User   @relation("proposingTo", fields: [proposeeId], references: [id])
+  proposingTo   User   @relation("proposingTo", fields: [proposeeId], references: [id], onDelete: Cascade)
   proposeeId    String
 
   message    String  @db.VarChar(2000)

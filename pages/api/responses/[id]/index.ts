@@ -116,16 +116,13 @@ export default async function handler(
   }
 
   if (req.method === "DELETE") {
-    const responses = Promise.all([
-      prisma.user.delete({ where: { id: query.id } }),
-      prisma.dateRequests.deleteMany({
-        where: {
-          OR: [{ proposeeId: query.id }, { proposerId: query.id }],
-        },
-      }),
-    ]);
+    const response = prisma.user.delete({
+      where: {
+        id: query.id,
+      },
+    });
     if (user.id === query.id || ["admin"].includes(await rank))
-      res.status(200).json((await responses)[0]);
+      res.status(200).json(await response);
     else res.status(403).json({ error: "Forbidden" });
     return;
   }

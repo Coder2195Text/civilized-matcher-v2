@@ -79,7 +79,7 @@ const FormActions: FC<ChildProps> = ({
               await fetch("/api/responses/@me", {
                 method: "DELETE",
               });
-              setForm(null);
+              setForm("unset");
             }}
           >
             <BsFillTrashFill className="w-full h-full" />
