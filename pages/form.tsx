@@ -8,9 +8,9 @@ import { User } from "@prisma/client";
 import { BiErrorAlt, BiHide, BiShow } from "react-icons/bi";
 import { BsFillExclamationTriangleFill, BsFillTrashFill } from "react-icons/bs";
 import { AuthStatus } from "@/types/next-auth";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { ErrorMessage, Field, Form, Formik, useField } from "formik";
 import { UserData } from "@/types/prisma";
-import { AGES, GENDERS, MAX_DISTANCE } from "@/globals/constants";
+import { AGES, GENDERS, MAX_DISTANCE, POLY } from "@/globals/constants";
 import { Button } from "@material-tailwind/react";
 
 const EnableStatus = ["enabled", "updating", "disabled"] as const;
@@ -117,6 +117,7 @@ interface ChoiceProps extends QuestionProps {
 
 interface TextProps extends QuestionProps {
 	placeholder: string;
+	maxLength: number;
 }
 
 interface SliderProps extends QuestionProps {
@@ -130,12 +131,18 @@ const ShortAnswer: FC<TextProps> = ({
 	children,
 	name,
 	question,
+	maxLength,
 }) => {
 	return (
 		<div>
 			<label>{question}</label>
 			{children && <div>{children}</div>}
-			<Field id={name} name={name} placeholder={placeholder} />
+			<Field
+				id={name}
+				name={name}
+				placeholder={placeholder}
+				maxLength={maxLength}
+			/>
 			<ErrorMessage name={name} />
 		</div>
 	);
@@ -196,6 +203,113 @@ const SelectAnswer: FC<ChoiceProps> = ({
 	);
 };
 
+const LongAnswer: FC<TextProps> = ({
+	placeholder,
+	children,
+	name,
+	question,
+	maxLength,
+}) => {
+	return (
+		<div>
+			<label>{question}</label>
+			{children && <div>{children}</div>}
+			<Field
+				id={name}
+				name={name}
+				placeholder={placeholder}
+				as="textarea"
+				className="h-80 text-black min-h-[100px]"
+				maxLength={maxLength}
+			/>
+			<ErrorMessage name={name} />
+		</div>
+	);
+};
+
+interface UploadProps extends QuestionProps {
+	accept: string;
+}
+
+const FileUpload: FC<UploadProps> = ({ question, children, name, accept }) => {
+	const [field, meta, helpers] = useField<string | null>(name);
+
+	const [uploading, setUploading] = useState(false);
+
+	const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const elm = event.currentTarget;
+		const file = elm.files?.[0];
+
+		if (!file) return;
+
+		setUploading(true);
+
+		const formData = new FormData();
+		formData.append("source", file);
+
+		const res = await fetch("/api/upload", {
+			method: "POST",
+			body: formData,
+		});
+
+		if (res.status !== 200) {
+			helpers.setError("Upload failed. You may have uploaded an invalid file.");
+		} else {
+			helpers.setError(undefined);
+			const value = await res.json();
+			console.log(value);
+			helpers.setValue(value.image.url);
+		}
+
+		elm.value = "";
+		setUploading(false);
+	};
+
+	return (
+		<div>
+			<label>{question}</label>
+			{children && (
+				<div>
+					{children}
+					<br />
+					{field.value && "Upload a new file to replace the old one."}
+				</div>
+			)}
+			<input
+				type="file"
+				id={name}
+				onChange={handleChange}
+				accept={accept}
+				className={uploading ? "hidden" : "block"}
+			/>
+			{uploading && <div>Uploading...</div>}
+			{field.value && (
+				<div>
+					<label>Current image:</label>
+					<img
+						src={field.value}
+						className="my-2 border-4 border-rose-900 max-h-[90vh]"
+					/>
+					<Button
+						className="p-2 bg-red-500 rounded-full"
+						onClick={() => {
+							helpers.setValue(null);
+						}}
+					>
+						Delete Image
+					</Button>
+				</div>
+			)}
+
+			{meta.error && (
+				<div className="flex flex-wrap items-center my-4 text-3xl font-extrabold text-red-600 bg-purple-400 bg-opacity-20">
+					<BiErrorAlt className="inline w-8 h-8" /> {meta.error}
+				</div>
+			)}
+		</div>
+	);
+};
+
 const Slider: FC<SliderProps> = ({
 	question,
 	children,
@@ -217,10 +331,12 @@ const Slider: FC<SliderProps> = ({
 					min={min}
 					max={max}
 					step={step}
-					className="mx-4 px-0"
+					className="px-0 mx-4"
 				/>
 				{max}km
+				<br />
 			</div>
+			<Field type="number" name={name} min={min} max={max} step={step} />
 			<ErrorMessage name={name} />
 		</div>
 	);
@@ -234,20 +350,19 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 				initialValues={
 					form
 						? {
-								...form,
-								preferredAges: (form.preferredAges as any[]).map((age) =>
-									String(age)
-								),
-								age: String(form.age),
-						  }
+							...form,
+							preferredAges: (form.preferredAges as any[]).map((age) =>
+								String(age)
+							),
+							age: String(form.age),
+						}
 						: FORM_INIT
 				}
 				validate={(values) => {
-					console.log(values);
 					const errors: { [key: string]: ReactNode } = {};
 					if (!values.name?.length) {
 						errors.name = "Your name is required.";
-					} else if (values.name.length >= 500) {
+					} else if (values.name.length > 500) {
 						errors.name = "Your name is too long.";
 					}
 					if (!values.age) {
@@ -256,6 +371,8 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 					if (!(values.preferredAges as any[])?.length) {
 						errors.preferredAges = "You must select at least one age.";
 					}
+
+					//TODO: Add pedo detection
 
 					if (!values.gender) {
 						errors.gender = "Your gender is required.";
@@ -267,23 +384,44 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 
 					if (!values.location?.length) {
 						errors.location = "Your location is required.";
-					} else if (values.location.length >= 500) {
+					} else if (values.location.length > 500) {
 						errors.location = "Location is too long.";
+					}
+
+					if (values.radius < 0 || values.radius > MAX_DISTANCE) {
+						errors.radius = "Invalid distance.";
+					}
+
+					if (!values.poly) {
+						errors.poly = "Your poly status is required.";
+					}
+
+					if (!values.desc?.length) {
+						errors.desc = "Your description is required.";
+					} else if (values.desc.length > 4000) {
+						errors.desc = "Description is too long.";
+					}
+
+					if (!values.matchDesc?.length) {
+						errors.matchDesc = "Your ideal partner description is required.";
+					} else if (values.matchDesc.length > 4000) {
+						errors.matchDesc = "Location is too long.";
 					}
 
 					for (let error in errors) {
 						errors[error] = (
-							<div className="my-4 font-extrabold text-red-400">
-								<BiErrorAlt className="inline w-6 h-6" /> {errors[error]}
+							<div className="flex flex-wrap items-center my-4 text-3xl font-extrabold text-red-600 bg-purple-400 bg-opacity-20">
+								<BiErrorAlt className="inline w-8 h-8" /> {errors[error]}
 							</div>
 						);
 					}
 					return errors;
 				}}
-				onSubmit={() => {}}
+				onSubmit={() => { }}
 			>
 				<Form>
 					<ShortAnswer
+						maxLength={500}
 						question="Name:"
 						name="name"
 						placeholder="Your name here"
@@ -313,6 +451,12 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 						choices={GENDERS}
 					/>
 
+					<MultipleChoice question="Poly status" name="poly" choices={POLY}>
+						Mono means you ONLY want one partner. Poly means you ONLY want
+						multiple partners. Ambi means you can tolerate both, depending on
+						who you are dating and their status.
+					</MultipleChoice>
+
 					<Notice>
 						Notice: I cannot stress this enough, but for the next question,
 						people love to put invalid answers, when it's one of the important
@@ -323,6 +467,7 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 					<ShortAnswer
 						question="Location (Please read instructions):"
 						name="location"
+						maxLength={500}
 						placeholder="A location"
 					>
 						- Share your real-life location in the format
@@ -342,6 +487,44 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 					>
 						Leave it at 0 if you want people from all around the world.
 					</Slider>
+
+					<Notice>
+						Notice: Some people just don't take this seriously, but at least try
+						on this section. Describe your interests clearly unless you want
+						some weirdo in your dms that don't suit you.
+					</Notice>
+					<LongAnswer
+						placeholder="Some stuff about yourself:"
+						question="Describe yourself"
+						name="desc"
+						maxLength={4000}
+					>
+						Be quite descriptive, or else you might get rejected :)
+					</LongAnswer>
+					<LongAnswer
+						placeholder="Some stuff you expect from a date:"
+						question="Describe an ideal partner"
+						name="matchDesc"
+						maxLength={4000}
+					>
+						Be descriptive otherwise no one will claim you because you are lazy
+						to do this completely :)
+					</LongAnswer>
+
+					<Notice>
+						The selfie is optional; don't stress about it too much. But if you
+						posted a pic in the discord selfie channel, but are reluctant to do
+						it here, I advise you delete the pic. It doesn't make a difference
+						because creepy ppl can just go on the discord channel.
+					</Notice>
+
+					<FileUpload
+						question="Selfie:"
+						name="selfieURL"
+						accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+					>
+						Optional, but recommended for sucessful match.
+					</FileUpload>
 				</Form>
 			</Formik>
 		</div>
