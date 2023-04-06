@@ -12,6 +12,7 @@ import { ErrorMessage, Field, Form, Formik, useField } from "formik";
 import { UserData } from "@/types/prisma";
 import { AGES, GENDERS, MAX_DISTANCE, POLY } from "@/globals/constants";
 import { Button } from "@material-tailwind/react";
+import deepEqual from "deep-equal";
 
 const EnableStatus = ["enabled", "updating", "disabled"] as const;
 type EnableStatus = (typeof EnableStatus)[number];
@@ -23,6 +24,7 @@ interface ChildProps {
 	isLoading: boolean;
 	enableStatus: EnableStatus;
 	setEnableStatus: Dispatch<SetStateAction<EnableStatus>>;
+	setSubmitted: Dispatch<SetStateAction<boolean>>;
 }
 
 const Notice: FC<{ children: ReactNode }> = ({ children }) => {
@@ -163,7 +165,12 @@ const MultipleChoice: FC<ChoiceProps> = ({
 					return (
 						<Button className="m-1 rounded-md bg-slate-600" key={choice}>
 							<label className="choice-wrapper">
-								<Field type="radio" name={name} value={String(choice)} />
+								<Field
+									type="radio"
+									name={name}
+									value={String(choice)}
+									id={name}
+								/>
 								{choice}
 							</label>
 						</Button>
@@ -186,7 +193,7 @@ const SelectAnswer: FC<ChoiceProps> = ({
 			<label>{question}</label>
 
 			{children && <div>{children}</div>}
-			<div className="flex flex-wrap justify-around items-center">
+			<div className="flex flex-wrap justify-around items-center" id={name}>
 				{choices.map((choice) => {
 					return (
 						<Button className="m-1 rounded-md bg-slate-600" key={choice}>
@@ -342,7 +349,7 @@ const Slider: FC<SliderProps> = ({
 	);
 };
 
-const FormEdit: FC<ChildProps> = ({ form }) => {
+const FormEdit: FC<ChildProps> = ({ form, setSubmitted }) => {
 	return (
 		<div>
 			<h3>{form ? "Edit" : "Create"} Form</h3>
@@ -371,8 +378,6 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 					if (!(values.preferredAges as any[])?.length) {
 						errors.preferredAges = "You must select at least one age.";
 					}
-
-					//TODO: Add pedo detection
 
 					if (!values.gender) {
 						errors.gender = "Your gender is required.";
@@ -417,121 +422,170 @@ const FormEdit: FC<ChildProps> = ({ form }) => {
 					}
 					return errors;
 				}}
-				onSubmit={() => { }}
+				onSubmit={async (values) => {
+					delete (values as Partial<User>).id;
+					delete (values as Partial<User>).discordTag;
+					delete (values as Partial<User>).enabled;
+					delete (values as Partial<User>).formVersion;
+
+					values.age = Number(values.age);
+					values.preferredAges = (values.preferredAges as number[]).map((s) =>
+						Number(s)
+					);
+					const res = await fetch("/api/responses/@me", {
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(values),
+					});
+					if (res.status < 400) {
+						setSubmitted(true);
+					}
+				}}
 			>
-				<Form>
-					<ShortAnswer
-						maxLength={500}
-						question="Name:"
-						name="name"
-						placeholder="Your name here"
-					>
-						The name you want to be addressed by
-					</ShortAnswer>
+				{({ isSubmitting, errors, values }) => (
+					<Form>
+						<ShortAnswer
+							maxLength={500}
+							question="Name:"
+							name="name"
+							placeholder="Your name here"
+						>
+							The name you want to be addressed by
+						</ShortAnswer>
 
-					<MultipleChoice question="Age:" name="age" choices={AGES} />
+						<MultipleChoice question="Age:" name="age" choices={AGES} />
 
-					<SelectAnswer
-						question="Ages you can date:"
-						name="preferredAges"
-						choices={AGES}
-					/>
+						<SelectAnswer
+							question="Ages you can date:"
+							name="preferredAges"
+							choices={AGES}
+						/>
 
-					<Notice>
-						Notice: For the next two questions, cis refers to same gender as
-						birth sex. AMAB refers to "a male at birth", while AFAB refers to "a
-						female at birth".
-					</Notice>
+						<Notice>
+							Notice: For the next two questions, cis refers to same gender as
+							birth sex. AMAB refers to "a male at birth", while AFAB refers to
+							"a female at birth".
+						</Notice>
 
-					<MultipleChoice question="Gender:" name="gender" choices={GENDERS} />
+						<MultipleChoice
+							question="Gender:"
+							name="gender"
+							choices={GENDERS}
+						/>
 
-					<SelectAnswer
-						question="Genders you can date:"
-						name="preferredGenders"
-						choices={GENDERS}
-					/>
+						<SelectAnswer
+							question="Genders you can date:"
+							name="preferredGenders"
+							choices={GENDERS}
+						/>
 
-					<MultipleChoice question="Poly status" name="poly" choices={POLY}>
-						Mono means you ONLY want one partner. Poly means you ONLY want
-						multiple partners. Ambi means you can tolerate both, depending on
-						who you are dating and their status.
-					</MultipleChoice>
+						<MultipleChoice question="Poly status" name="poly" choices={POLY}>
+							Mono means you ONLY want one partner. Poly means you ONLY want
+							multiple partners. Ambi means you can tolerate both, depending on
+							who you are dating and their status.
+						</MultipleChoice>
 
-					<Notice>
-						Notice: I cannot stress this enough, but for the next question,
-						people love to put invalid answers, when it's one of the important
-						parts of the form. Please read the instructions, because it helps
-						everyone and our matchmakers.
-					</Notice>
+						<Notice>
+							Notice: I cannot stress this enough, but for the next question,
+							people love to put invalid answers, when it's one of the important
+							parts of the form. Please read the instructions, because it helps
+							everyone and our matchmakers.
+						</Notice>
 
-					<ShortAnswer
-						question="Location (Please read instructions):"
-						name="location"
-						maxLength={500}
-						placeholder="A location"
-					>
-						- Share your real-life location in the format
-						[City/Town],[State/Province],[Country].
-						<br />- If not comfortable, choose a location within a 50km radius
-						of your real location and use the same format. This will ensure your
-						privacy, due to the massive area range.
-						<br />
-						Incorrect submissions will be deleted as other users rely on this
-						information.
-					</ShortAnswer>
-					<Slider
-						min={0}
-						max={MAX_DISTANCE}
-						name="radius"
-						question="Max radius for partners:"
-					>
-						Leave it at 0 if you want people from all around the world.
-					</Slider>
+						<ShortAnswer
+							question="Location (Please read instructions):"
+							name="location"
+							maxLength={500}
+							placeholder="A location"
+						>
+							- Share your real-life location in the format
+							[City/Town],[State/Province],[Country].
+							<br />- If not comfortable, choose a location within a 50km radius
+							of your real location and use the same format. This will ensure
+							your privacy, due to the massive area range.
+							<br />
+							Incorrect submissions will be deleted as other users rely on this
+							information.
+						</ShortAnswer>
+						<Slider
+							min={0}
+							max={MAX_DISTANCE}
+							name="radius"
+							question="Max radius for partners:"
+						>
+							Leave it at 0 if you want people from all around the world.
+						</Slider>
 
-					<Notice>
-						Notice: Some people just don't take this seriously, but at least try
-						on this section. Describe your interests clearly unless you want
-						some weirdo in your dms that don't suit you.
-					</Notice>
-					<LongAnswer
-						placeholder="Some stuff about yourself:"
-						question="Describe yourself"
-						name="desc"
-						maxLength={4000}
-					>
-						Be quite descriptive, or else you might get rejected :)
-					</LongAnswer>
-					<LongAnswer
-						placeholder="Some stuff you expect from a date:"
-						question="Describe an ideal partner"
-						name="matchDesc"
-						maxLength={4000}
-					>
-						Be descriptive otherwise no one will claim you because you are lazy
-						to do this completely :)
-					</LongAnswer>
+						<Notice>
+							Notice: Some people just don't take this seriously, but at least
+							try on this section. Describe your interests clearly unless you
+							want some weirdo in your dms that don't suit you.
+						</Notice>
+						<LongAnswer
+							placeholder="Some stuff about yourself:"
+							question="Describe yourself"
+							name="desc"
+							maxLength={4000}
+						>
+							Be quite descriptive, or else you might get rejected :)
+						</LongAnswer>
+						<LongAnswer
+							placeholder="Some stuff you expect from a date:"
+							question="Describe an ideal partner"
+							name="matchDesc"
+							maxLength={4000}
+						>
+							Be descriptive otherwise no one will claim you because you are
+							lazy to do this completely :)
+						</LongAnswer>
 
-					<Notice>
-						The selfie is optional; don't stress about it too much. But if you
-						posted a pic in the discord selfie channel, but are reluctant to do
-						it here, I advise you delete the pic. It doesn't make a difference
-						because creepy ppl can just go on the discord channel.
-					</Notice>
+						<Notice>
+							The selfie is optional; don't stress about it too much. But if you
+							posted a pic in the discord selfie channel, but are reluctant to
+							do it here, I advise you delete the pic. It doesn't make a
+							difference because creepy ppl can just go on the discord channel.
+						</Notice>
 
-					<FileUpload
-						question="Selfie:"
-						name="selfieURL"
-						accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
-					>
-						Optional, but recommended for sucessful match.
-					</FileUpload>
-				</Form>
+						<FileUpload
+							question="Selfie:"
+							name="selfieURL"
+							accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
+						>
+							Optional, but recommended for sucessful match.
+						</FileUpload>
+
+						{!deepEqual(values, form) && (
+							<Button
+								type="submit"
+								className="py-4 px-8 my-3 text-5xl font-bold text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none disabled:bg-red-700 focus:shadow-outline"
+								disabled={isSubmitting || Boolean(Object.keys(errors).length)}
+							>
+								{Object.keys(errors).length
+									? "Form contains errors."
+									: isSubmitting
+										? "Submitting..."
+										: "Submit"}
+							</Button>
+						)}
+					</Form>
+				)}
 			</Formik>
 		</div>
 	);
 };
 
+const NextSteps: FC = () => {
+	return (
+		<div>
+			<h3>Submitted. What now?</h3>
+		</div>
+	);
+};
+
 const FormManagement: FC = () => {
+	const [submitted, setSubmitted] = useState(false);
 	const { status } = useSession();
 	const [form, setForm] = useState<User | null | "unset">("unset"); // [form, setForm
 	const [enableStatus, setEnableStatus] = useState<EnableStatus>("updating");
@@ -557,27 +611,34 @@ const FormManagement: FC = () => {
 				description="Manage your matchmaking form and responses."
 			/>
 			<Layout>
-				{status == "authenticated" && !isLoading && form !== "unset" && (
-					<>
-						<h1>Form Management</h1>
-						<FormActions
-							status={status}
-							form={form}
-							setForm={setForm}
-							isLoading={isLoading}
-							enableStatus={enableStatus}
-							setEnableStatus={setEnableStatus}
-						/>
-						<FormEdit
-							status={status}
-							form={form}
-							setForm={setForm}
-							isLoading={isLoading}
-							enableStatus={enableStatus}
-							setEnableStatus={setEnableStatus}
-						/>
-					</>
-				)}
+				{status == "authenticated" &&
+					!isLoading &&
+					form !== "unset" &&
+					(submitted ? (
+						<NextSteps />
+					) : (
+						<>
+							<h1>Form Management</h1>
+							<FormActions
+								status={status}
+								form={form}
+								setForm={setForm}
+								isLoading={isLoading}
+								enableStatus={enableStatus}
+								setEnableStatus={setEnableStatus}
+								setSubmitted={setSubmitted}
+							/>
+							<FormEdit
+								status={status}
+								form={form}
+								setForm={setForm}
+								isLoading={isLoading}
+								enableStatus={enableStatus}
+								setEnableStatus={setEnableStatus}
+								setSubmitted={setSubmitted}
+							/>
+						</>
+					))}
 			</Layout>
 		</>
 	);

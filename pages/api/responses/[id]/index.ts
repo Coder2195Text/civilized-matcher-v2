@@ -25,7 +25,7 @@ const dataValidator = Joi.object({
   radius: Joi.number().min(0).max(MAX_DISTANCE),
   desc: Joi.string().min(1).max(4000),
   matchDesc: Joi.string().min(1).max(4000),
-  selfieUrl: Joi.string().uri().min(1).max(500),
+  selfieURL: Joi.string().allow(null).uri().min(1).max(500),
   name: Joi.string().min(1).max(500),
   poly: Joi.string().valid(...POLY),
 });
@@ -73,6 +73,7 @@ export default async function handler(
       await dataValidator.validateAsync(req.body);
     } catch (e) {
       res.status(400).json({ error: "Invalid request body" });
+      console.log(e);
       return;
     }
     const client = new Client({ intents: [GatewayIntentBits.GuildMembers] });
