@@ -68,7 +68,7 @@ export default async function handler(
     else res.status(403).json({ error: "Forbidden" });
     return;
   }
-  if (req.method == "PUT") {
+  if (req.method == "POST" || req.method == "PATCH") {
     try {
       await dataValidator.validateAsync(req.body);
     } catch (e) {
@@ -89,24 +89,26 @@ export default async function handler(
 
     if (user.id === query.id || (await rank) == "admin") {
       try {
-        const response = await Promise.all([
-          prisma.user.upsert({
-            where: { id: query.id },
-            update: req.body,
-            create: {
-              ...req.body,
-              id: query.id,
-            },
-          }),
-          prisma.rejections.upsert({
-            where: { id: query.id },
-            update: {},
-            create: {
-              id: query.id,
-            },
-          }),
-        ]);
-
+        let response;
+        if (req.method === "POST") {
+          response = await Promise.all([
+            prisma.user.create({
+              data: { ...req.body, id: query.id },
+            }),
+            prisma.rejections.create({
+              data: {
+                id: query.id,
+              },
+            }),
+          ]);
+        } else {
+          response = await Promise.all([
+            prisma.user.update({
+              where: { id: query.id },
+              data: req.body,
+            }),
+          ]);
+        }
         res.status(200).json(response[0]);
       } catch (e) {
         console.log(e);

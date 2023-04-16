@@ -210,6 +210,16 @@ const SelectAnswer: FC<ChoiceProps> = ({
 	);
 };
 
+function sortArrays<T>(obj: T): T {
+	obj = { ...obj };
+	for (let idx in obj) {
+		if (Array.isArray(obj[idx])) {
+			(obj[idx] as any[]).sort();
+		}
+	}
+	return obj;
+}
+
 const LongAnswer: FC<TextProps> = ({
 	placeholder,
 	children,
@@ -432,12 +442,15 @@ const FormEdit: FC<ChildProps> = ({ form, setSubmitted }) => {
 					values.preferredAges = (values.preferredAges as number[]).map((s) =>
 						Number(s)
 					);
+
+					const diff = calcObjDiff(form, values);
+					console.log(diff);
 					const res = await fetch("/api/responses/@me", {
-						method: "PUT",
+						method: form ? "PATCH" : "POST",
 						headers: {
 							"Content-Type": "application/json",
 						},
-						body: JSON.stringify(values),
+						body: JSON.stringify(form ? diff : values),
 					});
 					if (res.status < 400) {
 						setSubmitted(true);
@@ -556,7 +569,7 @@ const FormEdit: FC<ChildProps> = ({ form, setSubmitted }) => {
 							Optional, but recommended for sucessful match.
 						</FileUpload>
 
-						{!deepEqual(values, form) && (
+						{!deepEqual(sortArrays(values), sortArrays(form)) && (
 							<Button
 								type="submit"
 								className="py-4 px-8 my-3 text-5xl font-bold text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none disabled:bg-red-700 focus:shadow-outline"
@@ -583,6 +596,34 @@ const NextSteps: FC = () => {
 		</div>
 	);
 };
+
+function calcObjDiff(o: any, n: any) {
+	console.log(o, n);
+	o = sortArrays(o);
+	n = sortArrays(n);
+	const diff: { [key: string]: any } = {};
+	if (typeof o !== typeof n) {
+		return n;
+	}
+	if (typeof n !== "object") {
+		throw new Error("Invalid params");
+	}
+	for (let key in n) {
+		if (
+			!(
+				(Array.isArray(o[key]) &&
+					Array.isArray(n[key]) &&
+					o[key].length == n[key].length &&
+					(o[key] as any[]).every((val, idx) => val == n[key][idx])) ||
+				o[key] == n[key]
+			)
+		) {
+			diff[key] = n[key];
+		}
+	}
+	console.log(diff);
+	return diff;
+}
 
 const FormManagement: FC = () => {
 	const [submitted, setSubmitted] = useState(false);

@@ -17,6 +17,26 @@ export const GENDERS = [
   "AFAB Demiboy",
 ] as const;
 
+export const RELIGIONS = [
+  "Christian",
+  "Muslim",
+  "Atheist",
+  "Hindu",
+  "Buddhist",
+  "Jewish",
+  "Sikh",
+  "Spiritual",
+  "Baha'i",
+  "Jain",
+  "Shinto",
+  "Caodaism",
+  "Zoroastrian",
+  "Tenrikyo",
+  "Animism",
+  "Neo-Pagan",
+  "Others",
+];
+
 export const AGES = Array.from(
   range(
     Number(process.env.NEXT_PUBLIC_MIN_AGE),
