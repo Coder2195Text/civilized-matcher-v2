@@ -10,7 +10,13 @@ import { BsFillExclamationTriangleFill, BsFillTrashFill } from "react-icons/bs";
 import { AuthStatus } from "@/types/next-auth";
 import { ErrorMessage, Field, Form, Formik, useField } from "formik";
 import { UserData } from "@/types/prisma";
-import { AGES, GENDERS, MAX_DISTANCE, POLY } from "@/globals/constants";
+import {
+	AGES,
+	GENDERS,
+	MAX_DISTANCE,
+	POLY,
+	RELIGIONS,
+} from "@/globals/constants";
 import { Button } from "@material-tailwind/react";
 import deepEqual from "deep-equal";
 
@@ -94,6 +100,8 @@ const FormActions: FC<ChildProps> = ({
 };
 
 const FORM_INIT: UserData = {
+	preferredReligions: [],
+	religion: "",
 	age: NaN,
 	desc: "",
 	gender: "",
@@ -439,9 +447,7 @@ const FormEdit: FC<ChildProps> = ({ form, setSubmitted }) => {
 					delete (values as Partial<User>).formVersion;
 
 					values.age = Number(values.age);
-					values.preferredAges = (values.preferredAges as number[]).map((s) =>
-						Number(s)
-					);
+					values.preferredAges = (values.preferredAges as string[]).map(Number);
 
 					const diff = calcObjDiff(form, values);
 					console.log(diff);
@@ -493,6 +499,20 @@ const FormEdit: FC<ChildProps> = ({ form, setSubmitted }) => {
 							name="preferredGenders"
 							choices={GENDERS}
 						/>
+
+						<MultipleChoice
+							question="Religion"
+							name="religion"
+							choices={RELIGIONS}
+						/>
+
+						<SelectAnswer
+							question="Religions you can date:"
+							name="preferredReligions"
+							choices={RELIGIONS}
+						>
+							Select everything if you don't care about religion.
+						</SelectAnswer>
 
 						<MultipleChoice question="Poly status" name="poly" choices={POLY}>
 							Mono means you ONLY want one partner. Poly means you ONLY want

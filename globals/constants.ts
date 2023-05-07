@@ -35,7 +35,7 @@ export const RELIGIONS = [
   "Animism",
   "Neo-Pagan",
   "Others",
-];
+] as const;
 
 export const AGES = Array.from(
   range(
@@ -45,8 +45,14 @@ export const AGES = Array.from(
 );
 
 export const POLY = ["Monogamous", "Ambiamorous", "Polyamorous"] as const;
+export type GENDERS = (typeof GENDERS)[number];
+export type POLY = (typeof POLY)[number];
+export type RELIGIONS = (typeof RELIGIONS)[number];
 
-type GENDERS = (typeof GENDERS)[number];
-type POLY = (typeof POLY)[number];
+export const POLY_PREFS: { [key in POLY]: POLY[] } = {
+  Monogamous: ["Monogamous", "Ambiamorous"],
+  Ambiamorous: ["Monogamous", "Ambiamorous", "Polyamorous"],
+  Polyamorous: ["Ambiamorous", "Polyamorous"],
+};
 
 export const MAX_DISTANCE = 20000;

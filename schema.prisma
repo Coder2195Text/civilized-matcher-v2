@@ -25,8 +25,8 @@ model User {
   matchDesc          String  @db.VarChar(4000)
   selfieURL          String? @db.VarChar(500)
   poly               String
-  religion           String  @default("Christian")
-  preferredReligions Json    @default("[\"Christian\"]")
+  religion           String
+  preferredReligions Json
 
   requests   DateRequests[] @relation("proposingTo")
   requesting DateRequests[] @relation("proposingFrom")
